@@ -8,11 +8,12 @@ var notif;
 var notifCount;
 var oldNotifCount = -1;
 var currentTime;
-var j = request.jar();
-request = request.defaults({jar:j});
-j.setCookie(request.cookie('ds_user_id=' + config.ds_user_id), 'https://www.instagram.com/');
-j.setCookie(request.cookie('sessionid=' + config.sessionid), 'https://www.instagram.com/');
-j.setCookie(request.cookie('csrftoken=' + config.csrftoken), 'https://www.instagram.com/');
+var jar = request.jar();
+request = request.defaults({jar:jar});
+jar.setCookie(request.cookie('ds_user_id=' + config.ds_user_id), 'https://www.instagram.com/');
+jar.setCookie(request.cookie('sessionid=' + config.sessionid), 'https://www.instagram.com/');
+jar.setCookie(request.cookie('csrftoken=' + config.csrftoken), 'https://www.instagram.com/');
+var postQueue = [];
 
 function getNotif() {
   request.get({
@@ -48,38 +49,64 @@ function loop() {
         console.log('error grabbing attributes: '); //most likely trying to grab text from a follow notification
       }
       
-      for (i = 0; i < mediaID.length; i++) {
-        if (mediaID.charAt(i) == '_') {
-          mediaID = mediaID.slice(0, i);
+      for (j = 0; j < mediaID.length; j++) {
+        if (mediaID.charAt(j) == '_') {
+          mediaID = mediaID.slice(0, j);
         }
       }
 
       console.log('text: ' + text);
       console.log('mediaID: '+ mediaID);
       console.log('mediaCode: ' + mediaCode);
+      console.log('csfrtoken: ' + config.csrftoken);
 
+      
+      
+        
       //send comment
       if (text.indexOf('@millertestbot') > -1) { //if bot is summoned...
         console.log('valid text');
-        request.post({
-          url: 'https://www.instagram.com/web/comments/' + mediaID + '/add/',
-          headers: {referer:'https://www.instagram.com/p/' + mediaCode, 'x-csrftoken': config.csrftoken},
-          formData: {comment_text: 'This work, taken as a whole, lacks serious literary, artistic, political, or scientific value.'},
-          jar: j,
-        }, function(error, response, body) {
-          console.log(body);
-        });
+        postQueue.push({mediaID: mediaID, mediaCode: mediaCode});
       }
 
     }
     console.log('end notifications');
-    
+    postComments();
   }
   oldNotifCount = notifCount; //move up  
   
   setTimeout(function() {
     getNotif();
   }, 10000);
+}
+
+function postComments() {
+  var data = postQueue.pop();
+  console.log('data:');
+  console.log(data);
+  var mediaID = data.mediaID;
+  var mediaCode = data.mediaCode;
+  
+  console.log('url: ' + 'https://www.instagram.com/web/comments/' + mediaID + '/add/');
+  console.log('headers: ' + 'https://www.instagram.com/p/' + mediaCode);
+  
+  request.post({
+    url: 'https://www.instagram.com/web/comments/' + mediaID + '/add/',
+    headers: {referer: 'https://www.instagram.com/p/' + mediaCode, 'x-csrftoken': config.csrftoken},
+    formData: {comment_text: 'This work, taken as a whole, lacks serious literary, artistic, political, or scientific value.'},
+  }, function(error, response, body) {
+    console.log(body);
+    
+    console.log(postQueue.length);
+    if (postQueue.length == 0) {
+      return;
+    } else {
+      setTimeout(function() {
+        postComments();  
+      }, 5000);
+      
+    }
+  });
 }
 
 getNotif();
