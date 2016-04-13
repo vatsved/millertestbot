@@ -14,6 +14,7 @@ jar.setCookie(request.cookie('ds_user_id=' + config.ds_user_id), 'https://www.in
 jar.setCookie(request.cookie('sessionid=' + config.sessionid), 'https://www.instagram.com/');
 jar.setCookie(request.cookie('csrftoken=' + config.csrftoken), 'https://www.instagram.com/');
 var postQueue = [];
+var posting = false;
 
 function getNotif() {
   request.get({
