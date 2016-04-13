@@ -43,6 +43,7 @@ function loop() {
       username = notif[i].user.username;
     } catch (err) {
       console.log('error grabbing attributes: ' + err); //most likely trying to grab text from a follow notification
+      continue;
     }
 
     //trims mediaID; posting an answer requires the part up to an underscore
