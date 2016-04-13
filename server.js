@@ -27,8 +27,10 @@ function getNotif() {
 function loop() {
   for (i = 0; i < notif.length; i++) {
 
-    if (notif[i].timestamp < lastTime) {break;} //if notification is too old, break
+    if (notif[i].timestamp < lastTime) { break; } //if notification is too old, break
 
+    if (notif[i].type != 2 && notif[i].type != 5) { continue; } //2: comment on own photo. 5: mentioned somewhere else
+    
     console.log('notification: ' + i);
     var text = '';
     var mediaID = '';
@@ -42,7 +44,7 @@ function loop() {
       mediaCode = notif[i].media.code; //needed for headers
       username = notif[i].user.username;
     } catch (err) {
-      console.log('error grabbing attributes: ' + err); //most likely trying to grab text from a follow notification
+      console.log('error grabbing attributes: ' + err);
       continue;
     }
 
@@ -57,7 +59,6 @@ function loop() {
     console.log('mediaID: '+ mediaID);
     console.log('mediaCode: ' + mediaCode);
     console.log('username: ' + username);
-    console.log('csfrtoken: ' + config.csrftoken);
 
     //send comment
     if (text.indexOf('@millertestbot') > -1) { //if bot is summoned...
@@ -82,22 +83,25 @@ function postComments() {
   var mediaCode = data.mediaCode;
   var username = data.username;
   
-  request.post({
-    url: 'https://www.instagram.com/web/comments/' + mediaID + '/add/',
-    headers: {referer: 'https://www.instagram.com/p/' + mediaCode, 'x-csrftoken': config.csrftoken},
-    formData: {comment_text: '@' + username + ': This work, taken as a whole, lacks serious literary, artistic, political, or scientific value.'}, //adding the username of the requester increases question variability which helps hide from the spam filter
-  }, function(error, response, body) {
-    console.log(body); //an HTML response is an error (redirects to error page), JSON is success!
-    if (postQueue.length == 0) {
-      posting = false;
-      return;
-    } else {
-      setTimeout(function() {
-        postComments();  
-      }, 5000);
-      
-    }
-  });
+  try {
+    request.post({
+      url: 'https://www.instagram.com/web/comments/' + mediaID + '/add/',
+      headers: {referer: 'https://www.instagram.com/p/' + mediaCode, 'x-csrftoken': config.csrftoken},
+      formData: {comment_text: '@' + username + ': This work, taken as a whole, lacks serious literary, artistic, political, or scientific value.'}, //adding the username of the requester increases question variability which helps hide from the spam filter
+    }, function(error, response, body) {
+      console.log(body); //an HTML response is an error (redirects to error page), JSON is success!
+      if (postQueue.length == 0) {
+        posting = false;
+        return;
+      } else {
+        setTimeout(function() {
+          postComments();  
+        }, 5000);
+      }
+    });
+  } catch (err) {
+      console.log('error POSTing: ' + err);
+  }
 }
 
 getNotif();
