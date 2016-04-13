@@ -70,9 +70,11 @@ function loop() {
       }
 
     }
-    console.log('end notifications');
-    postComments();
-  }
+    if (!posting && postQueue.length > 0) {
+      posting = true;
+      postComments();
+    }
+//  }
   oldNotifCount = notifCount; //move up  
   
   setTimeout(function() {
@@ -99,6 +101,7 @@ function postComments() {
     
     console.log(postQueue.length);
     if (postQueue.length == 0) {
+      posting = false;
       return;
     } else {
       setTimeout(function() {
