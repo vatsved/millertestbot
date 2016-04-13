@@ -22,18 +22,18 @@ Use `npm install` to install dependencies. Then, create a new file `cookies.json
 
 These cookie values can be found after logging into Instagram on a web browser. In Chrome, visit `settings://cookies` and grab the Instagram cookies there.
 
-Next, go into config.json and change the appropriate values, which will be explained shortly.
+Next, go into keywords.json and change the appropriate values, which will be explained shortly.
 
-##configuration
+##keywords
 
-You can change what is used to summon the bot and what the bot replies by editing `config.json`:
+You can change what is used to summon the bot and what the bot replies by editing "keywords.json":
 
     {
       "keyword": "ayy lmao",
       "response": "dank meme tbh fam"
     }
     
-Note that the bot will only take and send back the first query/response if a user's comment includes multiple keywords. For example, if a user comments "@millertestbot keyword1 keyword2" and the config.json looks like this:
+Note that the bot will only take and send back the first query/response if a user's comment includes multiple keywords. For example, if a user comments "@millertestbot keyword1 keyword2" and "keywords.json" looks like this:
 
     {
       "keyword": "keyword1",
