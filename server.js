@@ -7,6 +7,7 @@ var headers = {};
 var notif;
 var notifCount;
 var oldNotifCount = -1;
+var lastTime = Date.now()/1000;
 var currentTime;
 var jar = request.jar();
 request = request.defaults({jar:jar});
@@ -21,20 +22,26 @@ function getNotif() {
     url: 'https://www.instagram.com/accounts/activity/?__a=1',
   }, function(error, response, body) {
     notif = JSON.parse(body).activityFeed.stories;
+    currentTime = Date.now()/1000;
     notifCount = notif.length;
     if (oldNotifCount == -1) {
       oldNotifCount = notifCount;
     }
     console.log('retrieved json: ' + notifCount);
+    console.log('current time: ' + currentTime);
     loop();
   });
   
 }
 
 function loop() {
-  if (notifCount > oldNotifCount) {
-    console.log('new notifications: ' + (notifCount - oldNotifCount));
-    for (i = 0; i < (notifCount-oldNotifCount); i++) {
+//  if (notifCount > oldNotifCount) {
+//    console.log('new notifications: ' + (notifCount - oldNotifCount));
+    for (i = 0; i < notif.length; i++) {
+      
+      if (notif[i].timestamp < lastTime) {
+        break;
+      }
       
       console.log('notification ' + i);
       var text = '';
@@ -49,7 +56,7 @@ function loop() {
         mediaCode = notif[i].media.code; //needed for headers
         username = notif[i].user.username;
       } catch (err) {
-        console.log('error grabbing attributes: '); //most likely trying to grab text from a follow notification
+        console.log('error grabbing attributes: ' + err); //most likely trying to grab text from a follow notification
       }
       
       for (j = 0; j < mediaID.length; j++) {
@@ -63,13 +70,10 @@ function loop() {
       console.log('mediaCode: ' + mediaCode);
       console.log('username: ' + username);
       console.log('csfrtoken: ' + config.csrftoken);
-
-      
-      
         
       //send comment
       if (text.indexOf('@millertestbot') > -1) { //if bot is summoned...
-        console.log('valid text');
+        console.log('sending comment...');
         postQueue.push({mediaID: mediaID, mediaCode: mediaCode, username: username});
       }
 
@@ -80,7 +84,7 @@ function loop() {
     }
 //  }
   oldNotifCount = notifCount; //move up  
-  
+  lastTime = currentTime;
   setTimeout(function() {
     getNotif();
   }, 10000);
@@ -88,13 +92,8 @@ function loop() {
 
 function postComments() {
   var data = postQueue.pop();
-  console.log('data:');
-  console.log(data);
   var mediaID = data.mediaID;
   var mediaCode = data.mediaCode;
-  
-  console.log('url: ' + 'https://www.instagram.com/web/comments/' + mediaID + '/add/');
-  console.log('headers: ' + 'https://www.instagram.com/p/' + mediaCode);
   var username = data.username;
   
   request.post({
@@ -103,8 +102,6 @@ function postComments() {
     formData: {comment_text: '@' + username + ': This work, taken as a whole, lacks serious literary, artistic, political, or scientific value.'},
   }, function(error, response, body) {
     console.log(body);
-    
-    console.log(postQueue.length);
     if (postQueue.length == 0) {
       posting = false;
       return;
