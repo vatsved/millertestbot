@@ -1,14 +1,15 @@
 var request = require('request');
-var config = require('./config.json');
+var cookies = require('./cookies.json');
+var keywords = require('./keywords.json');
 
 var notif;
 var lastTime = Date.now()/1000;
 var currentTime;
 var jar = request.jar();
 request = request.defaults({jar:jar});
-jar.setCookie(request.cookie('ds_user_id=' + config.ds_user_id), 'https://www.instagram.com/');
-jar.setCookie(request.cookie('sessionid=' + config.sessionid), 'https://www.instagram.com/');
-jar.setCookie(request.cookie('csrftoken=' + config.csrftoken), 'https://www.instagram.com/');
+jar.setCookie(request.cookie('ds_user_id=' + cookies.ds_user_id), 'https://www.instagram.com/');
+jar.setCookie(request.cookie('sessionid=' + cookies.sessionid), 'https://www.instagram.com/');
+jar.setCookie(request.cookie('csrftoken=' + cookies.csrftoken), 'https://www.instagram.com/');
 var postQueue = [];
 var posting = false;
 
@@ -61,12 +62,15 @@ function loop() {
     console.log('username: ' + username);
 
     //send comment
-    if (text.indexOf('@millertestbot') > -1) { //if bot is summoned...
-      console.log('\nsending comment...');
-      postQueue.push({mediaID: mediaID, mediaCode: mediaCode, username: username});
+    for (k = 0; k < keywords.length; k++) {
+      if (text.toUpperCase().indexOf(keywords[k].keyword.toUpperCase()) > -1) { //if bot is summoned...
+        console.log('\nsending comment...');
+        postQueue.push({mediaID: mediaID, mediaCode: mediaCode, username: username, comment: keywords[k].response});
+        break; //prevents more than one response
+      }      
     }
-
   }
+  
   if (!posting && postQueue.length > 0) {
     posting = true;
     postComments();
@@ -79,15 +83,17 @@ function loop() {
 
 function postComments() {
   var data = postQueue.pop();
+  
   var mediaID = data.mediaID;
   var mediaCode = data.mediaCode;
   var username = data.username;
+  var comment = data.comment;
   
   try {
     request.post({
       url: 'https://www.instagram.com/web/comments/' + mediaID + '/add/',
-      headers: {referer: 'https://www.instagram.com/p/' + mediaCode, 'x-csrftoken': config.csrftoken},
-      formData: {comment_text: '@' + username + ': This work, taken as a whole, lacks serious literary, artistic, political, or scientific value.'}, //adding the username of the requester increases question variability which helps hide from the spam filter
+      headers: {referer: 'https://www.instagram.com/p/' + mediaCode, 'x-csrftoken': cookies.csrftoken},
+      formData: {comment_text: '@' + username + ': ' + comment}, //adding the username of the requester increases question variability which helps hide from the spam filter
     }, function(error, response, body) {
       console.log(body); //an HTML response is an error (redirects to error page), JSON is success!
       if (postQueue.length == 0) {
