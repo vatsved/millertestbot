@@ -1,12 +1,7 @@
 var request = require('request');
-var cheerio = require('cheerio');
-
 var config = require('./config.json');
 
-var headers = {};
 var notif;
-var notifCount;
-var oldNotifCount = -1;
 var lastTime = Date.now()/1000;
 var currentTime;
 var jar = request.jar();
@@ -23,71 +18,61 @@ function getNotif() {
   }, function(error, response, body) {
     notif = JSON.parse(body).activityFeed.stories;
     currentTime = Date.now()/1000;
-    notifCount = notif.length;
-    if (oldNotifCount == -1) {
-      oldNotifCount = notifCount;
-    }
-    console.log('retrieved json: ' + notifCount);
+    console.log('\nretrieved json: ' + notif.length);
     console.log('current time: ' + currentTime);
     loop();
   });
-  
 }
 
 function loop() {
-//  if (notifCount > oldNotifCount) {
-//    console.log('new notifications: ' + (notifCount - oldNotifCount));
-    for (i = 0; i < notif.length; i++) {
-      
-      if (notif[i].timestamp < lastTime) {
-        break;
-      }
-      
-      console.log('notification ' + i);
-      var text = '';
-      var mediaID = '';
-      var mediaCode = '';
-      var username = '';
+  for (i = 0; i < notif.length; i++) {
 
-      //grab data
-      try {
-        text = notif[i].text;
-        mediaID = notif[i].media.id;
-        mediaCode = notif[i].media.code; //needed for headers
-        username = notif[i].user.username;
-      } catch (err) {
-        console.log('error grabbing attributes: ' + err); //most likely trying to grab text from a follow notification
-      }
-      
-      for (j = 0; j < mediaID.length; j++) {
-        if (mediaID.charAt(j) == '_') {
-          mediaID = mediaID.slice(0, j);
-        }
-      }
+    if (notif[i].timestamp < lastTime) {break;} //if notification is too old, break
 
-      console.log('text: ' + text);
-      console.log('mediaID: '+ mediaID);
-      console.log('mediaCode: ' + mediaCode);
-      console.log('username: ' + username);
-      console.log('csfrtoken: ' + config.csrftoken);
-        
-      //send comment
-      if (text.indexOf('@millertestbot') > -1) { //if bot is summoned...
-        console.log('sending comment...');
-        postQueue.push({mediaID: mediaID, mediaCode: mediaCode, username: username});
-      }
+    console.log('notification: ' + i);
+    var text = '';
+    var mediaID = '';
+    var mediaCode = '';
+    var username = '';
 
+    //grab data
+    try {
+      text = notif[i].text;
+      mediaID = notif[i].media.id;
+      mediaCode = notif[i].media.code; //needed for headers
+      username = notif[i].user.username;
+    } catch (err) {
+      console.log('error grabbing attributes: ' + err); //most likely trying to grab text from a follow notification
     }
-    if (!posting && postQueue.length > 0) {
-      posting = true;
-      postComments();
+
+    //trims mediaID; posting an answer requires the part up to an underscore
+    for (j = 0; j < mediaID.length; j++) { 
+      if (mediaID.charAt(j) == '_') {
+        mediaID = mediaID.slice(0, j);
+      }
     }
-//  }
-  oldNotifCount = notifCount; //move up  
+
+    console.log('\ntext: ' + text);
+    console.log('mediaID: '+ mediaID);
+    console.log('mediaCode: ' + mediaCode);
+    console.log('username: ' + username);
+    console.log('csfrtoken: ' + config.csrftoken);
+
+    //send comment
+    if (text.indexOf('@millertestbot') > -1) { //if bot is summoned...
+      console.log('\nsending comment...');
+      postQueue.push({mediaID: mediaID, mediaCode: mediaCode, username: username});
+    }
+
+  }
+  if (!posting && postQueue.length > 0) {
+    posting = true;
+    postComments();
+  }
   lastTime = currentTime;
   setTimeout(function() {
     getNotif();
-  }, 10000);
+  }, 10000); //checks every 10 seconds, reducing traffic on server
 }
 
 function postComments() {
@@ -99,9 +84,9 @@ function postComments() {
   request.post({
     url: 'https://www.instagram.com/web/comments/' + mediaID + '/add/',
     headers: {referer: 'https://www.instagram.com/p/' + mediaCode, 'x-csrftoken': config.csrftoken},
-    formData: {comment_text: '@' + username + ': This work, taken as a whole, lacks serious literary, artistic, political, or scientific value.'},
+    formData: {comment_text: '@' + username + ': This work, taken as a whole, lacks serious literary, artistic, political, or scientific value.'}, //adding the username of the requester increases question variability which helps hide from the spam filter
   }, function(error, response, body) {
-    console.log(body);
+    console.log(body); //an HTML response is an error (redirects to error page), JSON is success!
     if (postQueue.length == 0) {
       posting = false;
       return;
