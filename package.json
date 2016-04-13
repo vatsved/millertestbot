@@ -9,8 +9,6 @@
   "author": "William Ye",
   "license": "ISC",
   "dependencies": {
-    "cheerio": "^0.20.0",
-    "instagram-node": "^0.5.8",
     "request": "^2.70.0"
   }
 }
