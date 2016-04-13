@@ -40,12 +40,14 @@ function loop() {
       var text = '';
       var mediaID = '';
       var mediaCode = '';
+      var username = '';
 
       //grab data
       try {
         text = notif[i].text;
         mediaID = notif[i].media.id;
         mediaCode = notif[i].media.code; //needed for headers
+        username = notif[i].user.username;
       } catch (err) {
         console.log('error grabbing attributes: '); //most likely trying to grab text from a follow notification
       }
@@ -59,6 +61,7 @@ function loop() {
       console.log('text: ' + text);
       console.log('mediaID: '+ mediaID);
       console.log('mediaCode: ' + mediaCode);
+      console.log('username: ' + username);
       console.log('csfrtoken: ' + config.csrftoken);
 
       
@@ -67,7 +70,7 @@ function loop() {
       //send comment
       if (text.indexOf('@millertestbot') > -1) { //if bot is summoned...
         console.log('valid text');
-        postQueue.push({mediaID: mediaID, mediaCode: mediaCode});
+        postQueue.push({mediaID: mediaID, mediaCode: mediaCode, username: username});
       }
 
     }
@@ -92,11 +95,12 @@ function postComments() {
   
   console.log('url: ' + 'https://www.instagram.com/web/comments/' + mediaID + '/add/');
   console.log('headers: ' + 'https://www.instagram.com/p/' + mediaCode);
+  var username = data.username;
   
   request.post({
     url: 'https://www.instagram.com/web/comments/' + mediaID + '/add/',
     headers: {referer: 'https://www.instagram.com/p/' + mediaCode, 'x-csrftoken': config.csrftoken},
-    formData: {comment_text: 'This work, taken as a whole, lacks serious literary, artistic, political, or scientific value.'},
+    formData: {comment_text: '@' + username + ': This work, taken as a whole, lacks serious literary, artistic, political, or scientific value.'},
   }, function(error, response, body) {
     console.log(body);
     
