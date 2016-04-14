@@ -30,7 +30,7 @@ function loop() {
 
     if (notif[i].timestamp < lastTime) { break; } //if notification is too old, break
 
-    if (notif[i].type != 2 && notif[i].type != 5) { continue; } //2: comment on own photo. 5: mentioned somewhere else
+    if (notif[i].type != 5) { continue; } //5: mentioned somewhere else
     
     console.log('notification: ' + i);
     var text = '';
