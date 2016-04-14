@@ -62,12 +62,17 @@ function loop() {
     console.log('username: ' + username);
 
     //send comment
+    var br = false;
     for (k = 0; k < keywords.length; k++) {
-      if (text.toUpperCase().indexOf(keywords[k].keyword.toUpperCase()) > -1) { //if bot is summoned...
-        console.log('\nsending comment...');
-        postQueue.push({mediaID: mediaID, mediaCode: mediaCode, username: username, comment: keywords[k].response});
-        break; //prevents more than one response
-      }      
+      for (l = 0; l < keywords[k].keyword.length; l++) {
+        if (text.toUpperCase().indexOf(keywords[k].keyword[l].toUpperCase()) > -1) { //if bot is summoned...
+          console.log('\nsending comment...');
+          postQueue.push({mediaID: mediaID, mediaCode: mediaCode, username: username, comment: keywords[k].response});
+          br = true;
+          break;
+        }
+      }
+      if (br) { break; } //prevent more than one response            
     }
   }
   

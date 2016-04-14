@@ -1,22 +1,53 @@
 [
   {
-    "keyword": "communis",
+    "keyword": [
+      "communism",
+      "communist",
+      "seize",
+      "plight"
+    ],
     "response": "☭"
   },
   {
-    "keyword": "ayy lmao",
+    "keyword": [
+      "give a shit",
+      "care"
+    ],
+    "response": "millertestbot don't give no shits"
+  },
+  {
+    "keyword": [
+      "Trump"
+    ],
+    "response": "build the wall"
+  },
+  {
+    "keyword": [
+      "ayy lmao",
+      "ayylmao"
+    ],
     "response": "ayyy lmaooooo"
   },
   {
-    "keyword": "dank",
+    "keyword": [
+      "TY TY"
+    ],
+    "response": "I AM THE DANK QUEEN LEADER @ayylmao"
+  },
+  {
+    "keyword": [
+      "dank"
+    ],
     "response": "stay dank, fam."
   },
   {
-    "keyword": "aunt linda",
+    "keyword": [
+      "aunt"
+    ],
     "response": "AUNT LINDA IS WITH THE LORD NOW order corn n"
   },
   {
-    "keyword": "",
+    "keyword": [""],
     "response": "This work, taken as a whole, lacks serious literary, artistic, political, or scientific value."
   }
 
