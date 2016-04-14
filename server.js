@@ -106,7 +106,7 @@ function postComments() {
         return;
       } else {
         setTimeout(function() {
-          postComments();  
+          postComments();
         }, 5000);
       }
     });
